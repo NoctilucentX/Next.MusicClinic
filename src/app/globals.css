@@ -90,6 +90,7 @@
 
 .smc-login {
   margin-top: 60px;
+  background-color: #764522;
   
 
   
@@ -105,8 +106,16 @@
   overflow: hidden;
 }
 
+.music-card {
+  background:#764522 50%;
+  border: 3px solid #783301;
+  border-radius: 50px;
+  backdrop-filter: blur (12px);
+  -webkit-backdrop-filter: blur(12px);
+  
+}
 
- 
+
 
 
 
