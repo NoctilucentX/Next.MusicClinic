@@ -32,23 +32,23 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+    <div className="min-h-scree musical-bg flex items-center justify-center p-6">
       <Card className="w-full max-w-md">
             {/* Logo */}
-             <div className="flex justify-center">
+             <div className="login-logo block justify-center">
                 <img
                 src="/logo.png"
                 alt="Sernan's Music Clinic Logo"
-                  className="h-30px h-auto rounded-md"
+                  className="h-50 h-50"
                 />
             </div>
 
-        <CardHeader className="text-center">
+        <CardHeader className="smc-login text-center">
           <CardTitle className="text-2xl font-bold text-gray-900">Studio Management Platform</CardTitle>
           <CardDescription>WELCOME BACK!</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4 p-6">
+          <form onSubmit={handleSubmit} className="login-text space-y-2 p-4">
             <div className="space-y-2">
               <Label htmlFor="userType">User Type</Label>
               <Select value={userType} onValueChange={(value) => setUserType(value as UserType)}>

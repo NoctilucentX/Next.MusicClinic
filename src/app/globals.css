@@ -56,6 +56,9 @@
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
+
+  
+
   }
 }
 
@@ -67,3 +70,43 @@
     @apply bg-background text-foreground;
   }
 }
+
+.login-logo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-size: cover;
+  height: 30px;
+  max-height: 50px;
+  width: 70%;
+  max-width: 400px;
+  margin: 0 auto;
+  position: relative;
+  padding-top: 0%;
+  margin-top: 50;
+  margin-bottom: 20px;
+  padding-bottom: 60px;
+} 
+
+.smc-login {
+  margin-top: 60px;
+  
+
+  
+}.musical-bg {
+  background-image: 
+    linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)),
+    url('/bg-woodgrain.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  position: relative;
+  overflow: hidden;
+}
+
+
+ 
+
+
+
