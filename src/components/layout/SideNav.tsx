@@ -117,7 +117,13 @@ export default function SideNav() {
           variant="outline"
           size="sm"
           className="w-full"
-          onClick={logout}
+          onClick={async () => {
+            try {
+              await logout();
+            } catch (error) {
+              console.error('Failed to logout:', error);
+            }
+          }}
         >
           <LogOut size={16} className="mr-2" />
           Sign Out

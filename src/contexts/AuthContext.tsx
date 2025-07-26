@@ -76,7 +76,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await signOut(auth);
       setUser(null);
+      // Force redirect to login page
+      window.location.href = '/';
     } catch (error: unknown) {
+      console.error('Logout error:', error);
       throw error;
     }
   };
