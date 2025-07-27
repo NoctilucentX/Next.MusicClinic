@@ -44,28 +44,28 @@ export default function LoginPage() {
             </div>
 
         <CardHeader className="smc-login text-center">
-        
-          <CardTitle className="text-2xl font-bold text-gray-900">Studio Management Platform</CardTitle>
-          <CardDescription>WELCOME BACK!</CardDescription>
+    
+          <CardTitle className="login-text text-2xl font-bold">Studio Management Platform</CardTitle>
+          <CardDescription className='login1-text'>WELCOME BACK!</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="login-text space-y- p-4">
-            <div className="space-y-2">
-              <Label htmlFor="userType">User Type</Label>
+          <form onSubmit={handleSubmit} className="login-text text-2xl">
+            <div className="user-text m-5 ">
+              <Label htmlFor="userType">USER TYPE</Label>
               <Select value={userType} onValueChange={(value) => setUserType(value as UserType)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select user type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="instructor">Instructor</SelectItem>
-                  <SelectItem value="student">Student</SelectItem>
+                  <SelectItem value="admin">ADMIN</SelectItem>
+                  <SelectItem value="instructor">INCTRUCTOR</SelectItem>
+                  <SelectItem value="student">STUDENT</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+            <div className="login-card space-y-2 m-5">
+              <Label htmlFor="email">EMAIL</Label>
               <Input
                 id="email"
                 type="email"
@@ -76,8 +76,8 @@ export default function LoginPage() {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+            <div className="space-y-2 m-5">
+              <Label htmlFor="password">PASSWORD</Label>
               <Input
                 id="password"
                 type="password"
@@ -89,10 +89,10 @@ export default function LoginPage() {
             </div>
 
             {error && (
-              <div className="text-red-500 text-sm text-center">{error}</div>
+              <div className="text-red-500 text-sm text-center ">{error}</div>
             )}
 
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full mx-auto justify-center" disabled={loading}>
               {loading ? 'Signing in...' : 'Sign In'}
             </Button>
           </form>
