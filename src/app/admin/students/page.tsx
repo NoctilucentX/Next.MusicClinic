@@ -31,10 +31,33 @@ export default function StudentsPage() {
     setNewStudent({ ...newStudent, [e.target.name]: e.target.value });
   };
 
-  const addStudent = () => {
-    setStudents([...students, newStudent]);
-    setNewStudent({ name: '', email: '', instrument: '', instructor: '', dateEnrolled: '' });
+  // const addStudent = () => {
+  //   setStudents([...students, newStudent]);
+  //   setNewStudent({ name: '', email: '', instrument: '', instructor: '', dateEnrolled: '' });
+  // };
+
+  const addStudent = async () => {
+    try {
+      const res = await fetch('/api/students', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newStudent),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        // Optionally add the new student with the inserted ID
+        setStudents([...students, newStudent]);
+        setNewStudent({ name: '', email: '', instrument: '', instructor: '', dateEnrolled: '' });
+      } else {
+        alert('Failed to add student: ' + data.error);
+      }
+    } catch (error) {
+      alert('Error adding student: ' + error.message);
+    }
   };
+
 
   return (
     <DashboardLayout>
@@ -49,7 +72,13 @@ export default function StudentsPage() {
               <Input name="email" placeholder="Email" value={newStudent.email} onChange={handleChange} />
               <Input name="instrument" placeholder="Instrument" value={newStudent.instrument} onChange={handleChange} />
               <Input name="instructor" placeholder="Instructor" value={newStudent.instructor} onChange={handleChange} />
-              <Input name="dateEnrolled" placeholder="Date Enrolled" value={newStudent.dateEnrolled} onChange={handleChange} />
+              <Input
+                  type="date"
+                  name="dateEnrolled"
+                  placeholder="Date Enrolled"
+                  value={newStudent.dateEnrolled}
+                  onChange={handleChange}
+                />
             </div>
             <Button onClick={addStudent}>Add Student</Button>
           </CardContent>
