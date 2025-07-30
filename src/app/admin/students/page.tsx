@@ -1,7 +1,6 @@
-// app/students/page.tsx
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,15 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 
 export default function StudentsPage() {
-  const [students, setStudents] = useState([
-    {
-      name: 'John Doe',
-      email: 'john@example.com',
-      instrument: 'Piano',
-      instructor: 'Sarah Smith',
-      dateEnrolled: '2025-07-20'
-    }
-  ]);
+  const [students, setStudents] = useState([]);
 
   const [newStudent, setNewStudent] = useState({
     name: '',
@@ -31,11 +22,26 @@ export default function StudentsPage() {
     setNewStudent({ ...newStudent, [e.target.name]: e.target.value });
   };
 
-  // const addStudent = () => {
-  //   setStudents([...students, newStudent]);
-  //   setNewStudent({ name: '', email: '', instrument: '', instructor: '', dateEnrolled: '' });
-  // };
+  // ✅ Fetch students from API on mount
+  useEffect(() => {
+    const fetchStudents = async () => {
+      try {
+        const res = await fetch('/api/students');
+        const data = await res.json();
+        if (data.success) {
+          setStudents(data.students);
+        } else {
+          console.error('Failed to fetch students:', data.error);
+        }
+      } catch (err) {
+        console.error('Error fetching students:', err);
+      }
+    };
 
+    fetchStudents();
+  }, []);
+
+  // ✅ Add student to DB
   const addStudent = async () => {
     try {
       const res = await fetch('/api/students', {
@@ -47,17 +53,22 @@ export default function StudentsPage() {
       const data = await res.json();
 
       if (data.success) {
-        // Optionally add the new student with the inserted ID
-        setStudents([...students, newStudent]);
-        setNewStudent({ name: '', email: '', instrument: '', instructor: '', dateEnrolled: '' });
+        // Add to local state or re-fetch
+        setStudents((prev) => [...prev, newStudent]);
+        setNewStudent({
+          name: '',
+          email: '',
+          instrument: '',
+          instructor: '',
+          dateEnrolled: ''
+        });
       } else {
         alert('Failed to add student: ' + data.error);
       }
-    } catch (error) {
+    } catch (error: any) {
       alert('Error adding student: ' + error.message);
     }
   };
-
 
   return (
     <DashboardLayout>
@@ -73,12 +84,12 @@ export default function StudentsPage() {
               <Input name="instrument" placeholder="Instrument" value={newStudent.instrument} onChange={handleChange} />
               <Input name="instructor" placeholder="Instructor" value={newStudent.instructor} onChange={handleChange} />
               <Input
-                  type="date"
-                  name="dateEnrolled"
-                  placeholder="Date Enrolled"
-                  value={newStudent.dateEnrolled}
-                  onChange={handleChange}
-                />
+                type="date"
+                name="dateEnrolled"
+                placeholder="Date Enrolled"
+                value={newStudent.dateEnrolled}
+                onChange={handleChange}
+              />
             </div>
             <Button onClick={addStudent}>Add Student</Button>
           </CardContent>

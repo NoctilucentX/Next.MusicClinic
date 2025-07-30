@@ -1,7 +1,7 @@
 // app/instructors/page.tsx
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -37,20 +37,68 @@ export default function InstructorsPage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewInstructor({ ...newInstructor, [e.target.name]: e.target.value });
   };
+  useEffect(() => {
+    const fetchInstructors = async () => {
+      try {
+        const res = await fetch('/api/instructors');
+        const data = await res.json();
+        if (data.success) {
+          setInstructors(data.instructors);
+        } else {
+          console.error('Failed to fetch instructors:', data.error);
+        }
+      } catch (err) {
+        console.error('Error fetching instructors:', err);
+      }
+    };
 
-  const addInstructor = () => {
-    setInstructors([...instructors, newInstructor]);
-    setNewInstructor({
-      name: '',
-      email: '',
-      instrument: '',
-      experience: '',
-      certifications: '',
-      students: 0,
-      available: true,
-      dateJoined: ''
-    });
+    fetchInstructors();
+  }, []);
+
+  // const addInstructor = () => {
+  //   setInstructors([...instructors, newInstructor]);
+  //   setNewInstructor({
+  //     name: '',
+  //     email: '',
+  //     instrument: '',
+  //     experience: '',
+  //     certifications: '',
+  //     students: 0,
+  //     available: true,
+  //     dateJoined: ''
+  //   });
+  // };
+
+  const addInstructor = async () => {
+    try {
+      const res = await fetch('/api/instructors', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newInstructor),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setInstructors([...instructors, newInstructor]);
+        setNewInstructor({
+          name: '',
+          email: '',
+          instrument: '',
+          experience: '',
+          certifications: '',
+          students: 0,
+          available: true,
+          dateJoined: ''
+        });
+      } else {
+        alert('Failed to add instructor: ' + data.error);
+      }
+    } catch (error: any) {
+      alert('Error adding instructor: ' + error.message);
+    }
   };
+
 
   return (
     <DashboardLayout>
@@ -66,7 +114,14 @@ export default function InstructorsPage() {
               <Input name="instrument" placeholder="Instrument" value={newInstructor.instrument} onChange={handleChange} />
               <Input name="experience" placeholder="Experience (Years)" value={newInstructor.experience} onChange={handleChange} />
               <Input name="certifications" placeholder="Certifications" value={newInstructor.certifications} onChange={handleChange} />
-              <Input name="dateJoined" placeholder="Date Joined" value={newInstructor.dateJoined} onChange={handleChange} />
+              <Input
+                  type="date"
+                  name="dateJoined"
+                  placeholder="Date Joined"
+                  value={newInstructor.dateJoined}
+                  onChange={handleChange}
+                />
+
             </div>
             <Button onClick={addInstructor}>Add Instructor</Button>
           </CardContent>
