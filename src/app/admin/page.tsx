@@ -124,6 +124,39 @@ export default function AdminDashboard() {
               </button>
             </CardContent>
           </Card>
+
+          <Card>
+  <CardHeader>
+    <CardTitle>Payment History</CardTitle>
+  </CardHeader>
+  <CardContent>
+    <div className="space-y-4">
+      <div className="flex items-center space-x-3">
+        <div className="w-2 h-2 bg-green-600 rounded-full"></div>
+        <div className="flex-1">
+          <p className="text-sm font-medium">Iverson Dela Cruz paid ₱1,500</p>
+          <p className="text-xs text-gray-500">Ref: GCASH98327 • Today at 2:43 PM</p>
+        </div>
+      </div>
+      <div className="flex items-center space-x-3">
+        <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+        <div className="flex-1">
+          <p className="text-sm font-medium">Maria Santos paid ₱2,000</p>
+          <p className="text-xs text-gray-500">Ref: GCASH32111 • Yesterday at 10:15 AM</p>
+        </div>
+      </div>
+      <div className="flex items-center space-x-3">
+        <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+        <div className="flex-1">
+          <p className="text-sm font-medium">Pending payment from Juan Reyes</p>
+          <p className="text-xs text-gray-500">Expected: ₱1,800 • Ref: GCASH99127</p>
+        </div>
+      </div>
+    </div>
+  </CardContent>
+</Card>
+
+
         </div>
       </div>
     </DashboardLayout>

@@ -86,7 +86,8 @@
   margin-top: 50;
   margin-bottom: 20px;
   padding-bottom: 60px;
-} 
+}
+
 
 .smc-login {
   margin-top: 60px;
@@ -95,7 +96,7 @@
   
 }.musical-bg {
   background-image: 
-    linear-gradient(rgba(0, 0, 0, 0.222), rgba(0, 0, 0, 0.722)),
+    linear-gradient(rgba(128, 128, 128, 0.264), rgba(0, 0, 0, 0.722)),
     url('/bg-woodgrain.png');
   background-size: cover;
   background-position: center;
@@ -107,7 +108,7 @@
 }
 
 .music-card {
-  background:#764522bc 50%;
+  background:#76452265 50%;
   border: 2px solid #78330183;
   border-radius: 50px;
   backdrop-filter: blur (12px);
@@ -115,26 +116,26 @@
 }
 
 .login-text {
-  color: #e9cb8b ;
+  color: #ffebc1 ;
   font-family: cursive;
   font-size: 30px;
-  background-color: #602a00 ;
-  border: 2px solid #78330183;
+  background-color: #202326a4 ;
+  border: 1px solid #00000083;
   border-radius: 20;
-}
-
-.login1-text {
-  color: #e6b95a ;
-  font-family: cursive;
-  font-size: 20px;
-
+  align-items: center;
 }
 
 .login-card {
-  border-color: black;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px;
+
+ 
+
+
 }
-
-
 
 
 

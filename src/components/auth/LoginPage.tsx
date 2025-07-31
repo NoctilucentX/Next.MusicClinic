@@ -46,11 +46,10 @@ export default function LoginPage() {
         <CardHeader className="smc-login text-center">
     
           <CardTitle className="login-text text-2xl font-bold">Studio Management Platform</CardTitle>
-          <CardDescription className='login1-text'>WELCOME BACK!</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="login-text text-2xl">
-            <div className="user-text m-5 ">
+          <form onSubmit={handleSubmit} className="login-text text-2xl font-bold justify-center ">
+            <div className="user-text m-5 text-center">
               <Label htmlFor="userType">USER TYPE</Label>
               <Select value={userType} onValueChange={(value) => setUserType(value as UserType)}>
                 <SelectTrigger>
@@ -64,8 +63,8 @@ export default function LoginPage() {
               </Select>
             </div>
 
-            <div className="login-card space-y-2 m-5">
-              <Label htmlFor="email">EMAIL</Label>
+            <div className="login-card space-y-2 m-5 text-black">
+              <Label htmlFor="email"></Label>
               <Input
                 id="email"
                 type="email"
@@ -76,8 +75,8 @@ export default function LoginPage() {
               />
             </div>
 
-            <div className="space-y-2 m-5">
-              <Label htmlFor="password">PASSWORD</Label>
+            <div className="login-card space-y-2 m-5 text-black">
+              <Label htmlFor="password"></Label>
               <Input
                 id="password"
                 type="password"
