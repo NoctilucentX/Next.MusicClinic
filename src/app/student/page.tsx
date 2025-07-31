@@ -210,7 +210,7 @@ export default function StudentDashboard() {
                     <BookOpen size={20} className="text-green-600" />
                     <div className="text-left">
                       <p className="font-medium">My Lessons</p>
-                      <p className="text-xs text-gray-500">View lesson history</p>
+                      <p className="text-xs text-gray-500">View lesson history and Schedule</p>
                     </div>
                   </div>
                 </Button>
@@ -220,8 +220,8 @@ export default function StudentDashboard() {
                   <div className="flex items-center space-x-3">
                     <Calendar size={20} className="text-purple-600" />
                     <div className="text-left">
-                      <p className="font-medium">My Schedule</p>
-                      <p className="text-xs text-gray-500">View calendar</p>
+                      <p className="font-medium">Payment</p>
+                      <p className="text-xs text-gray-500">through Gcash</p>
                     </div>
                   </div>
                 </Button>

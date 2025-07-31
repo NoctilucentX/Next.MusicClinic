@@ -16,7 +16,10 @@ import {
   X,
   Home,
   Clock,
-  FileText
+  FileText,
+  DoorOpen,
+  UserPen,
+  WalletCards
 } from 'lucide-react';
 
 interface NavItem {
@@ -45,6 +48,7 @@ export default function SideNav() {
           { href: '/admin/students', label: 'Students', icon: <Users size={20} /> },
           { href: '/admin/instructors', label: 'Instructors', icon: <Music size={20} /> },
           { href: '/admin/schedule', label: 'Schedule', icon: <Calendar size={20} /> },
+          { href: '/admin/resource', label: 'Resources', icon: <DoorOpen size={20} /> },
           { href: '/admin/settings', label: 'Settings', icon: <Settings size={20} /> }
         ];
       case 'instructor':
@@ -52,16 +56,16 @@ export default function SideNav() {
           ...baseItems,
           { href: '/instructor/schedule', label: 'My Schedule', icon: <Calendar size={20} /> },
           { href: '/instructor/students', label: 'My Students', icon: <Users size={20} /> },
-          { href: '/instructor/lessons', label: 'Lessons', icon: <BookOpen size={20} /> },
-          { href: '/instructor/profile', label: 'Profile', icon: <Settings size={20} /> }
+          { href: '/instructor/lessons', label: 'Resources', icon: <DoorOpen size={20} /> },
+          { href: '/instructor/profile', label: 'My Profile', icon: <UserPen size={20} /> }
         ];
       case 'student':
         return [
           ...baseItems,
-          { href: '/student/request-schedule', label: 'Request Schedule', icon: <Clock size={20} /> },
-          { href: '/student/my-lessons', label: 'My Lessons', icon: <BookOpen size={20} /> },
-          { href: '/student/schedule', label: 'My Schedule', icon: <Calendar size={20} /> },
-          { href: '/student/profile', label: 'Profile', icon: <Settings size={20} /> }
+          { href: '/student/request-schedule', label: 'Request Appointment', icon: <Clock size={20} /> },
+          { href: '/student/my-lessons', label: 'My Lessons', icon: <Calendar size={20} /> },
+          { href: '/student/profile', label: 'My Profile', icon: <UserPen size={20} /> },
+          { href: '/student/payment', label: 'Payment Gateway', icon: <WalletCards size={20} /> }
         ];
       default:
         return baseItems;
