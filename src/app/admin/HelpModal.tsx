@@ -1,10 +1,15 @@
 // components/admin/HelpModal.tsx
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 export default function HelpModal() {
   const [open, setOpen] = useState(false);
@@ -19,7 +24,7 @@ export default function HelpModal() {
         <DialogHeader>
           <DialogTitle>Contact Management</DialogTitle>
         </DialogHeader>
-        <Separator />
+
         <div className="space-y-4 mt-4 text-sm">
           <p>If you need assistance, you can reach out to:</p>
           <div>

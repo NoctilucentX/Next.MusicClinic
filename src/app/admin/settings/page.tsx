@@ -1,13 +1,12 @@
 // app/admin/settings/page.tsx
-'use client';
+"use client";
 
-import DashboardLayout from '@/components/layout/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
+import DashboardLayout from "@/components/layout/DashboardLayout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 export default function AdminSettingsPage() {
   return (
@@ -37,11 +36,25 @@ export default function AdminSettingsPage() {
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <Label htmlFor="2fa">Enable 2-Factor Authentication</Label>
-              <Switch id="2fa" />
+              <Switch
+                id="2fa"
+                checked={false}
+                onCheckedChange={function (checked: boolean): void {
+                  throw new Error("Function not implemented.");
+                }}
+              />
             </div>
             <div className="flex items-center justify-between">
-              <Label htmlFor="publicAccess">Allow Student Self-Registration</Label>
-              <Switch id="publicAccess" />
+              <Label htmlFor="publicAccess">
+                Allow Student Self-Registration
+              </Label>
+              <Switch
+                id="publicAccess"
+                checked={false}
+                onCheckedChange={function (checked: boolean): void {
+                  throw new Error("Function not implemented.");
+                }}
+              />
             </div>
             <Button variant="destructive">Reset Admin Password</Button>
           </CardContent>
@@ -53,8 +66,16 @@ export default function AdminSettingsPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
-              <Label htmlFor="allowBackToBack">Allow Back-to-Back Lessons</Label>
-              <Switch id="allowBackToBack" />
+              <Label htmlFor="allowBackToBack">
+                Allow Back-to-Back Lessons
+              </Label>
+              <Switch
+                id="allowBackToBack"
+                checked={false}
+                onCheckedChange={function (checked: boolean): void {
+                  throw new Error("Function not implemented.");
+                }}
+              />
             </div>
             <div className="flex items-center justify-between">
               <Label htmlFor="maxLessons">Max Lessons Per Day</Label>
@@ -71,11 +92,25 @@ export default function AdminSettingsPage() {
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <Label htmlFor="emailNotify">Email Alerts</Label>
-              <Switch id="emailNotify" />
+              <Switch
+                id="emailNotify"
+                checked={false}
+                onCheckedChange={function (checked: boolean): void {
+                  throw new Error("Function not implemented.");
+                }}
+              />
             </div>
             <div className="flex items-center justify-between">
-              <Label htmlFor="lessonReminders">Lesson Reminder Notifications</Label>
-              <Switch id="lessonReminders" />
+              <Label htmlFor="lessonReminders">
+                Lesson Reminder Notifications
+              </Label>
+              <Switch
+                id="lessonReminders"
+                checked={false}
+                onCheckedChange={function (checked: boolean): void {
+                  throw new Error("Function not implemented.");
+                }}
+              />
             </div>
             <Button>Save Notification Settings</Button>
           </CardContent>
