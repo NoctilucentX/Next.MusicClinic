@@ -1,120 +1,134 @@
-'use client';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
 
-import React, { useState } from 'react';
-import { collection, addDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { useAuth } from '@/contexts/AuthContext';
-import DashboardLayout from '@/components/layout/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar } from '@/components/ui/calendar';
-import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
-import { Calendar as CalendarIcon, Clock, Music, Plus, X } from 'lucide-react';
+import { useEffect, useState } from "react";
+import { useForm, Controller } from "react-hook-form";
+import DashboardLayout from "@/components/layout/DashboardLayout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { Calendar as CalendarIcon, Clock, Music, X } from "lucide-react";
+import useAuthStore from "@/store/useAuthStore";
+import useLessonRequestStore from "@/store/useLessonRequestStore";
+import useInstructorStore from "@/store/useInstructorStore";
+import { instrumentsLookUp, timeSlotsLookUp } from "@/lib/helper";
+
+type FormValues = {
+  instrument: string;
+  level: string;
+  duration: string;
+  instructorId: string;
+  additionalNotes?: string;
+};
 
 export default function StudentRequestSchedulePage() {
-  const { user } = useAuth();
+  const { user }: any = useAuthStore();
+  const { addLessonRequest } = useLessonRequestStore();
+  const { instructors, fetchAllInstructor } = useInstructorStore();
   const [selectedDates, setSelectedDates] = useState<Date[]>([]);
   const [selectedTimes, setSelectedTimes] = useState<string[]>([]);
-  const [instrument, setInstrument] = useState('');
-  const [duration, setDuration] = useState('60');
-  const [level, setLevel] = useState('');
-  const [additionalNotes, setAdditionalNotes] = useState('');
-  const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const timeSlots = [
-    '9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM',
-    '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM',
-    '5:00 PM', '6:00 PM', '7:00 PM', '8:00 PM'
-  ];
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<FormValues>({
+    defaultValues: {
+      instrument: "",
+      level: "",
+      duration: "60",
+      additionalNotes: "",
+      instructorId: "",
+    },
+  });
 
-  const instruments = [
-    'Piano', 'Guitar', 'Violin', 'Drums', 'Voice',
-    'Saxophone', 'Flute', 'Trumpet', 'Cello', 'Bass'
-  ];
+  const handleFormSubmit = async (data: FormValues) => {
+    if (!selectedDates.length || !selectedTimes.length) return;
 
-  const handleDateSelect = (dates: Date[] | undefined) => {
-    if (!dates) {
-      setSelectedDates([]);
-      return;
-    }
-    setSelectedDates(dates);
-  };
-
-  const handleTimeSelect = (time: string) => {
-    if (selectedTimes.includes(time)) {
-      setSelectedTimes(selectedTimes.filter(t => t !== time));
-    } else {
-      setSelectedTimes([...selectedTimes, time]);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
     setLoading(true);
-
     try {
-      await addDoc(collection(db, 'lessonRequests'), {
+      await addLessonRequest({
         studentId: user?.uid,
-        studentName: user?.name,
+        studentName: user?.displayName,
         studentEmail: user?.email,
-        instrument,
-        preferredDates: selectedDates.map(date => date.toISOString()),
+        instrument: data.instrument,
+        level: data.level,
+        instructorId: data.instructorId,
+        duration: parseInt(data.duration),
+        preferredDates: selectedDates.map((date) => date.toISOString()),
         preferredTimes: selectedTimes,
-        duration: parseInt(duration),
-        level,
-        additionalNotes,
-        status: 'pending',
-        createdAt: new Date(),
-        updatedAt: new Date()
+        additionalNotes: data.additionalNotes || "",
       });
 
       setSuccess(true);
-      // Reset form
       setSelectedDates([]);
       setSelectedTimes([]);
-      setInstrument('');
-      setDuration('60');
-      setLevel('');
-      setAdditionalNotes('');
-
+      reset();
       setTimeout(() => setSuccess(false), 5000);
     } catch (error) {
-      console.error('Error submitting request:', error);
+      console.error("Error submitting request:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const canSubmit = selectedDates.length > 0 && selectedTimes.length > 0 && instrument && level;
+  const handleDateSelect = (dates: Date[] | undefined) => {
+    setSelectedDates(dates ?? []);
+  };
+
+  const handleTimeSelect = (time: string) => {
+    setSelectedTimes((prev) =>
+      prev.includes(time) ? prev.filter((t) => t !== time) : [...prev, time]
+    );
+  };
+
+  useEffect(() => {
+    fetchAllInstructor();
+  }, []);
+
+  const canSubmit = selectedDates.length > 0 && selectedTimes.length > 0;
 
   return (
     <DashboardLayout>
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900">Request Lesson Schedule</h1>
-          <p className="text-gray-600 mt-2">Select your preferred dates and times for music lessons</p>
+          <h1 className="text-2xl font-bold">Request Lesson Schedule</h1>
+          <p className="text-gray-600 mt-2">
+            Select your preferred dates and times for music lessons
+          </p>
         </div>
 
         {success && (
           <Card className="border-green-200 bg-green-50">
             <CardContent className="p-4">
               <div className="flex items-center space-x-2 text-green-800">
-                <div className="w-4 h-4 rounded-full bg-green-600"></div>
-                <span className="font-medium">Request submitted successfully!</span>
+                <div className="w-4 h-4 rounded-full bg-green-600" />
+                <span className="font-medium">
+                  Request submitted successfully!
+                </span>
               </div>
               <p className="text-green-700 text-sm mt-1">
-                Your lesson request has been sent to the admin. You'll be notified once it's reviewed.
+                Your lesson request has been sent to the admin. You'll be
+                notified once it's reviewed.
               </p>
             </CardContent>
           </Card>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Lesson Details */}
             <Card>
@@ -126,58 +140,134 @@ export default function StudentRequestSchedulePage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label htmlFor="instrument">Instrument</Label>
-                  <Select value={instrument} onValueChange={setInstrument}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select instrument" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {instruments.map((inst) => (
-                        <SelectItem key={inst} value={inst}>
-                          {inst}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label>Instrument</Label>
+                  <Controller
+                    name="instrument"
+                    control={control}
+                    rules={{ required: "Instrument is required" }}
+                    render={({ field }) => (
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select instrument" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {instrumentsLookUp.map((inst) => (
+                            <SelectItem key={inst} value={inst}>
+                              {inst}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  {errors.instrument && (
+                    <p className="text-sm text-red-500">
+                      {errors.instrument.message}
+                    </p>
+                  )}
                 </div>
 
                 <div>
-                  <Label htmlFor="level">Skill Level</Label>
-                  <Select value={level} onValueChange={setLevel}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select your level" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="beginner">Beginner</SelectItem>
-                      <SelectItem value="intermediate">Intermediate</SelectItem>
-                      <SelectItem value="advanced">Advanced</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label>Skill Level</Label>
+                  <Controller
+                    name="level"
+                    control={control}
+                    rules={{ required: "Level is required" }}
+                    render={({ field }) => (
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select level" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="beginner">Beginner</SelectItem>
+                          <SelectItem value="intermediate">
+                            Intermediate
+                          </SelectItem>
+                          <SelectItem value="advanced">Advanced</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  {errors.level && (
+                    <p className="text-sm text-red-500">
+                      {errors.level.message}
+                    </p>
+                  )}
                 </div>
 
                 <div>
-                  <Label htmlFor="duration">Lesson Duration</Label>
-                  <Select value={duration} onValueChange={setDuration}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select duration" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="30">30 minutes</SelectItem>
-                      <SelectItem value="45">45 minutes</SelectItem>
-                      <SelectItem value="60">60 minutes</SelectItem>
-                      <SelectItem value="90">90 minutes</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label>Instructor</Label>
+                  <Controller
+                    name="instructorId"
+                    control={control}
+                    rules={{ required: "Level is required" }}
+                    render={({ field }) => (
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select level" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {instructors.map((inst: any) => (
+                            <SelectItem key={inst.uid} value={inst.uid}>
+                              {inst.displayName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  {errors.level && (
+                    <p className="text-sm text-red-500">
+                      {errors.level.message}
+                    </p>
+                  )}
                 </div>
 
                 <div>
-                  <Label htmlFor="notes">Additional Notes (Optional)</Label>
-                  <Textarea
-                    id="notes"
-                    value={additionalNotes}
-                    onChange={(e) => setAdditionalNotes(e.target.value)}
-                    placeholder="Any specific requirements or preferences..."
-                    rows={3}
+                  <Label>Lesson Duration</Label>
+                  <Controller
+                    name="duration"
+                    control={control}
+                    render={({ field }) => (
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select duration" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="30">30 minutes</SelectItem>
+                          <SelectItem value="45">45 minutes</SelectItem>
+                          <SelectItem value="60">60 minutes</SelectItem>
+                          <SelectItem value="90">90 minutes</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
+
+                <div>
+                  <Label>Additional Notes</Label>
+                  <Controller
+                    name="additionalNotes"
+                    control={control}
+                    render={({ field }) => (
+                      <Textarea
+                        {...field}
+                        placeholder="Any specific requirements or preferences..."
+                        rows={3}
+                      />
+                    )}
                   />
                 </div>
               </CardContent>
@@ -197,24 +287,29 @@ export default function StudentRequestSchedulePage() {
                   selected={selectedDates}
                   onSelect={handleDateSelect}
                   disabled={(date) => date < new Date()}
-                  className="rounded-md border w-full"
                 />
                 {selectedDates.length > 0 && (
                   <div className="mt-4">
                     <Label>Selected Dates:</Label>
                     <div className="flex flex-wrap gap-2 mt-2">
                       {selectedDates.map((date, index) => (
-                        <Badge key={index} variant="secondary" className="cursor-pointer">
+                        <Badge
+                          key={index}
+                          variant="secondary"
+                          className="cursor-pointer"
+                        >
                           {date.toLocaleDateString()}
                           <X
                             size={14}
                             className="ml-1"
-                            onClick={() => {
-                              const newDates = selectedDates.filter(
-                                selectedDate => selectedDate.toDateString() !== date.toDateString()
-                              );
-                              setSelectedDates(newDates);
-                            }}
+                            onClick={() =>
+                              setSelectedDates((prev) =>
+                                prev.filter(
+                                  (d) =>
+                                    d.toDateString() !== date.toDateString()
+                                )
+                              )
+                            }
                           />
                         </Badge>
                       ))}
@@ -235,11 +330,13 @@ export default function StudentRequestSchedulePage() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
-                {timeSlots.map((time) => (
+                {timeSlotsLookUp.map((time) => (
                   <Button
                     key={time}
                     type="button"
-                    variant={selectedTimes.includes(time) ? "default" : "outline"}
+                    variant={
+                      selectedTimes.includes(time) ? "default" : "outline"
+                    }
                     size="sm"
                     onClick={() => handleTimeSelect(time)}
                     className="w-full"
@@ -253,7 +350,11 @@ export default function StudentRequestSchedulePage() {
                   <Label>Selected Times:</Label>
                   <div className="flex flex-wrap gap-2 mt-2">
                     {selectedTimes.map((time, index) => (
-                      <Badge key={index} variant="secondary" className="cursor-pointer">
+                      <Badge
+                        key={index}
+                        variant="secondary"
+                        className="cursor-pointer"
+                      >
                         {time}
                         <X
                           size={14}
@@ -276,7 +377,7 @@ export default function StudentRequestSchedulePage() {
               disabled={!canSubmit || loading}
               className="w-full sm:w-auto"
             >
-              {loading ? 'Submitting...' : 'Submit Lesson Request'}
+              {loading ? "Submitting..." : "Submit Lesson Request"}
             </Button>
           </div>
         </form>

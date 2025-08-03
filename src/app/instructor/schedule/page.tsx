@@ -1,53 +1,77 @@
-// app/instructor/schedule/page.tsx
-'use client';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
 
-import { useEffect, useState } from 'react';
-import DashboardLayout from '@/components/layout/DashboardLayout';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { format, parseISO, isToday } from 'date-fns';
-
-type Lesson = {
-  id: string;
-  student: string;
-  instrument: string;
-  time: string;
-  date: string;
-  status: 'upcoming' | 'completed';
-};
+import { useEffect, useState } from "react";
+import DashboardLayout from "@/components/layout/DashboardLayout";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import useAuthStore from "@/store/useAuthStore";
+import useInstructorDashboard from "@/store/useInstructorDashboard";
+import moment from "moment-timezone";
 
 export default function MySchedulePage() {
-  const [lessons, setLessons] = useState<Lesson[]>([]);
-  const [filter, setFilter] = useState<'all' | 'today' | 'upcoming'>('all');
+  const [filter, setFilter] = useState<"all" | "today" | "upcoming">(
+    "upcoming"
+  );
+  const [loading, setLoading] = useState(true);
+  const [lessons, setLessons] = useState<any[]>([]);
+
+  const { user }: any = useAuthStore();
+  const {
+    getApprovedLessonRequests,
+    getAllLessonsSorted,
+    getTodaysLessonsSorted,
+    getUpcomingLessonsSorted,
+  } = useInstructorDashboard();
 
   useEffect(() => {
-    async function loadData() {
-      const data = await fetchApprovedLessonsForInstructor(); // returns instructor-specific lessons
-      setLessons(data);
-    }
-    loadData();
-  }, []);
+    const fetchLessons = async () => {
+      if (!user) return;
+      setLoading(true);
+      await getApprovedLessonRequests(user.uid);
 
-  const filteredLessons = lessons.filter((lesson) => {
-    if (filter === 'today') return isToday(parseISO(lesson.date));
-    if (filter === 'upcoming') return lesson.status === 'upcoming';
-    return true;
-  });
+      let filtered: any[] = [];
+      switch (filter) {
+        case "today":
+          filtered = getTodaysLessonsSorted();
+          break;
+        case "upcoming":
+          filtered = getUpcomingLessonsSorted();
+          break;
+        default:
+          filtered = getAllLessonsSorted();
+          break;
+      }
 
-  const today = new Date();
-  const thisMonth = format(today, 'MMMM yyyy');
+      setLessons(filtered);
+      setLoading(false);
+    };
+
+    fetchLessons();
+  }, [
+    user,
+    getApprovedLessonRequests,
+    getAllLessonsSorted,
+    getUpcomingLessonsSorted,
+    getTodaysLessonsSorted,
+    filter,
+  ]);
+
+  const thisMonth = moment().tz("Asia/Manila").format("MMMM YYYY");
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>My Schedule — {thisMonth}</CardTitle>
+            <CardTitle>My Schedule - {thisMonth}</CardTitle>
             <ToggleGroup
               type="single"
               value={filter}
-              onValueChange={(val) => val && setFilter(val)}
+              onValueChange={(val) => {
+                if (val) setFilter(val as "all" | "today" | "upcoming");
+              }}
               className="mt-2"
             >
               <ToggleGroupItem value="all">All</ToggleGroupItem>
@@ -56,26 +80,58 @@ export default function MySchedulePage() {
             </ToggleGroup>
           </CardHeader>
           <CardContent className="space-y-4">
-            {filteredLessons.length === 0 ? (
+            {loading ? (
+              <p className="text-muted-foreground">Loading lessons...</p>
+            ) : lessons.length === 0 ? (
               <p className="text-muted-foreground">No lessons found.</p>
             ) : (
-              filteredLessons.map((lesson) => (
-                <Card key={lesson.id} className="p-4 border">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="text-sm font-medium">
-                        {format(parseISO(lesson.date), 'EEEE, MMM d')} — {lesson.time}
-                      </p>
-                      <p className="text-muted-foreground text-sm">
-                        {lesson.instrument} lesson with {lesson.student}
-                      </p>
+              [...lessons]
+                .map((lesson) => {
+                  const now = moment.tz("Asia/Manila");
+
+                  const validDateTimes = lesson.preferredDates.flatMap(
+                    (date: any) =>
+                      lesson.preferredTimes.map((time: any) =>
+                        moment.tz(
+                          `${date} ${time}`,
+                          "YYYY-MM-DD hh:mm A",
+                          "Asia/Manila"
+                        )
+                      )
+                  );
+
+                  // If filtering for upcoming only, exclude past lessons
+                  const relevantDateTimes =
+                    filter === "upcoming"
+                      ? validDateTimes.filter((dt: any) => dt.isAfter(now))
+                      : validDateTimes;
+
+                  if (relevantDateTimes.length === 0) return null;
+
+                  const earliestDateTime = relevantDateTimes.sort(
+                    (a: any, b: any) => a.valueOf() - b.valueOf()
+                  )[0];
+
+                  return { lesson, dateTime: earliestDateTime };
+                })
+                .filter(Boolean)
+                .sort((a, b) => a!.dateTime.valueOf() - b!.dateTime.valueOf())
+                .map(({ lesson, dateTime }: any) => (
+                  <Card key={lesson.id} className="p-4 border">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <p className="text-sm font-medium">
+                          {dateTime.format("dddd, MMM D")} -{" "}
+                          {dateTime.format("h:mm A")}
+                        </p>
+                        <p className="text-muted-foreground text-sm">
+                          {lesson.instrument} lesson with {lesson.studentName}
+                        </p>
+                      </div>
+                      <Badge variant="secondary">Scheduled</Badge>
                     </div>
-                    <Badge variant={lesson.status === 'completed' ? 'default' : 'secondary'}>
-                      {lesson.status}
-                    </Badge>
-                  </div>
-                </Card>
-              ))
+                  </Card>
+                ))
             )}
           </CardContent>
         </Card>

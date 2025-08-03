@@ -1,104 +1,73 @@
-// app/instructors/page.tsx
-'use client';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
 
-import { useEffect, useState } from 'react';
-import DashboardLayout from '@/components/layout/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
-import { Switch } from '@/components/ui/switch';
+import { Controller, useFieldArray, useForm } from "react-hook-form";
+import { useEffect } from "react";
+import DashboardLayout from "@/components/layout/DashboardLayout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+import useAuthStore from "@/store/useAuthStore";
+import useInstructorStore from "@/store/useInstructorStore";
+import moment from "moment";
+import { instrumentsLookUp } from "@/lib/helper";
+import { Minus, Plus } from "lucide-react";
+
+type InstructorForm = {
+  displayName: string;
+  email: string;
+  instruments: { name: string }[];
+  experience: string;
+  certifications: string;
+  dateJoined: string;
+  students?: number;
+};
 
 export default function InstructorsPage() {
-  const [instructors, setInstructors] = useState([
-    {
-      name: 'Sarah Smith',
-      email: 'sarah@example.com',
-      instrument: 'Guitar',
-      experience: 5,
-      certifications: 'ABRSM Grade 8',
-      students: 12,
-      available: true,
-      dateJoined: '2025-06-15'
-    }
-  ]);
-
-  const [newInstructor, setNewInstructor] = useState({
-    name: '',
-    email: '',
-    instrument: '',
-    experience: '',
-    certifications: '',
-    students: 0,
-    available: true,
-    dateJoined: ''
+  const { user }: any = useAuthStore();
+  const { register, control, handleSubmit, reset } = useForm<InstructorForm>({
+    defaultValues: {
+      instruments: [{ name: "" }],
+    },
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setNewInstructor({ ...newInstructor, [e.target.name]: e.target.value });
-  };
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "instruments",
+  });
+  const { createInstructor, fetchAllInstructor, instructors } =
+    useInstructorStore();
+
   useEffect(() => {
-    const fetchInstructors = async () => {
-      try {
-        const res = await fetch('/api/instructors');
-        const data = await res.json();
-        if (data.success) {
-          setInstructors(data.instructors);
-        } else {
-          console.error('Failed to fetch instructors:', data.error);
-        }
-      } catch (err) {
-        console.error('Error fetching instructors:', err);
-      }
-    };
+    fetchAllInstructor();
+  }, [fetchAllInstructor]);
 
-    fetchInstructors();
-  }, []);
-
-  // const addInstructor = () => {
-  //   setInstructors([...instructors, newInstructor]);
-  //   setNewInstructor({
-  //     name: '',
-  //     email: '',
-  //     instrument: '',
-  //     experience: '',
-  //     certifications: '',
-  //     students: 0,
-  //     available: true,
-  //     dateJoined: ''
-  //   });
-  // };
-
-  const addInstructor = async () => {
-    try {
-      const res = await fetch('/api/instructors', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newInstructor),
-      });
-
-      const data = await res.json();
-
-      if (data.success) {
-        setInstructors([...instructors, newInstructor]);
-        setNewInstructor({
-          name: '',
-          email: '',
-          instrument: '',
-          experience: '',
-          certifications: '',
-          students: 0,
-          available: true,
-          dateJoined: ''
-        });
-      } else {
-        alert('Failed to add instructor: ' + data.error);
-      }
-    } catch (error: any) {
-      alert('Error adding instructor: ' + error.message);
+  const onSubmit = async (data: InstructorForm) => {
+    if (data) {
+      const instructorInfo = {
+        ...data,
+        userType: "instructor",
+      };
+      await createInstructor(instructorInfo, user);
+      await fetchAllInstructor();
+      reset();
     }
   };
-
 
   return (
     <DashboardLayout>
@@ -108,22 +77,77 @@ export default function InstructorsPage() {
             <CardTitle>Add Instructor</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <Input name="name" placeholder="Name" value={newInstructor.name} onChange={handleChange} />
-              <Input name="email" placeholder="Email" value={newInstructor.email} onChange={handleChange} />
-              <Input name="instrument" placeholder="Instrument" value={newInstructor.instrument} onChange={handleChange} />
-              <Input name="experience" placeholder="Experience (Years)" value={newInstructor.experience} onChange={handleChange} />
-              <Input name="certifications" placeholder="Certifications" value={newInstructor.certifications} onChange={handleChange} />
+            <form
+              onSubmit={handleSubmit(onSubmit)}
+              className="grid grid-cols-2 gap-4"
+            >
               <Input
-                  type="date"
-                  name="dateJoined"
-                  placeholder="Date Joined"
-                  value={newInstructor.dateJoined}
-                  onChange={handleChange}
-                />
+                {...register("displayName", { required: "Name is required" })}
+                placeholder="Name"
+              />
 
-            </div>
-            <Button onClick={addInstructor}>Add Instructor</Button>
+              <Input
+                {...register("email", { required: "Email is required" })}
+                placeholder="Email"
+              />
+              <Input
+                {...register("experience")}
+                placeholder="Experience (Years)"
+              />
+              <Input
+                {...register("certifications")}
+                placeholder="Certifications"
+              />
+              <div className="col-span-2 space-y-2">
+                {fields.map((field, index) => (
+                  <div key={field.id} className="flex items-center gap-2">
+                    <Controller
+                      control={control}
+                      name={`instruments.${index}.name`}
+                      render={({ field }) => (
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                        >
+                          <SelectTrigger className="w-[250px]">
+                            <SelectValue placeholder="Select instrument" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {instrumentsLookUp.map((instrument) => (
+                              <SelectItem key={instrument} value={instrument}>
+                                {instrument}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      onClick={() => remove(index)}
+                      disabled={fields.length === 1}
+                    >
+                      <Minus className="w-4 h-4" />
+                    </Button>
+                    {index === fields.length - 1 && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={() => append({ name: "" })}
+                      >
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <div className="col-span-2">
+                <Button type="submit">Add Instructor</Button>
+              </div>
+            </form>
           </CardContent>
         </Card>
 
@@ -140,24 +164,36 @@ export default function InstructorsPage() {
                   <TableHead>Instrument</TableHead>
                   <TableHead>Experience</TableHead>
                   <TableHead>Certifications</TableHead>
-                  <TableHead>Students</TableHead>
-                  <TableHead>Available</TableHead>
                   <TableHead>Date Joined</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {instructors.map((instructor, index) => (
+                {instructors.map((instructor: any, index) => (
                   <TableRow key={index}>
-                    <TableCell>{instructor.name}</TableCell>
+                    <TableCell>{instructor.displayName}</TableCell>
                     <TableCell>{instructor.email}</TableCell>
-                    <TableCell>{instructor.instrument}</TableCell>
-                    <TableCell>{instructor.experience} yrs</TableCell>
-                    <TableCell>{instructor.certifications}</TableCell>
-                    <TableCell>{instructor.students}</TableCell>
                     <TableCell>
-                      <Switch checked={instructor.available} />
+                      {Array.isArray(instructor.instruments)
+                        ? instructor.instruments
+                            .map((inst: any) => inst.name)
+                            .join(", ")
+                        : "-"}
                     </TableCell>
-                    <TableCell>{instructor.dateJoined}</TableCell>
+                    <TableCell>
+                      {instructor.experience
+                        ? `${instructor.experience} yrs`
+                        : "-"}
+                    </TableCell>
+                    <TableCell>{instructor.certifications}</TableCell>
+                    <TableCell>
+                      {instructor.dateEnrolled
+                        ? moment(
+                            typeof instructor.dateEnrolled.toDate === "function"
+                              ? instructor.dateEnrolled.toDate()
+                              : instructor.dateEnrolled
+                          ).format("MMMM D, YYYY")
+                        : "N/A"}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

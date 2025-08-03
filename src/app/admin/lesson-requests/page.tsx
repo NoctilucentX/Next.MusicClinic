@@ -1,13 +1,31 @@
-'use client';
+/* eslint-disable react-hooks/exhaustive-deps */
+"use client";
 
-import { useEffect, useState } from 'react';
-import DashboardLayout from '@/components/layout/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useEffect } from "react";
+import DashboardLayout from "@/components/layout/DashboardLayout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import useLessonRequestStore from "@/store/useLessonRequestStore";
+import moment from "moment";
+import { roomLookUp } from "@/lib/helper";
+import {
+  Select,
+  SelectContent,
+  SelectTrigger,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
+
+// Define types
 
 type Request = {
   id: string;
@@ -19,146 +37,24 @@ type Request = {
   level: string;
   date: string;
   time: string;
-  status: 'pending' | 'approved' | 'declined';
-};
-
-type Student = {
-  id: string;
-  name: string;
-};
-
-type Instructor = {
-  id: string;
-  name: string;
-  instrument: string;
+  status: "pending" | "approved" | "declined";
 };
 
 export default function LessonRequestsPage() {
-  const [requests, setRequests] = useState<Request[]>([]);
-  const [students, setStudents] = useState<Student[]>([]);
-  const [instructors, setInstructors] = useState<Instructor[]>([]);
-
-  const [form, setForm] = useState({
-    studentId: '',
-    instructorId: '',
-    duration: '',
-    level: '',
-    date: '',
-    time: '',
-  });
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  const handleSelectChange = (key: string, value: string) => {
-    setForm({ ...form, [key]: value });
-  };
+  const {
+    pendingRequests,
+    getPendingLessonRequests,
+    updateStatus,
+    updateRoom,
+  } = useLessonRequestStore();
 
   useEffect(() => {
-    const fetchStudentsAndInstructors = async () => {
-      try {
-        const [sRes, iRes] = await Promise.all([
-          fetch('/api/students'),
-          fetch('/api/instructors'),
-        ]);
-
-        const studentsData = await sRes.json();
-        const instructorsData = await iRes.json();
-
-        if (studentsData.success) setStudents(studentsData.students);
-        if (instructorsData.success) setInstructors(instructorsData.instructors);
-      } catch (err) {
-        console.error('Failed to load data', err);
-      }
-    };
-
-    fetchStudentsAndInstructors();
+    getPendingLessonRequests();
   }, []);
-
-  const submitRequest = () => {
-    const student = students.find(s => s.id === form.studentId);
-    const instructor = instructors.find(i => i.id === form.instructorId);
-
-    if (!student || !instructor) return alert('Please select valid student and instructor');
-
-    const newRequest: Request = {
-      id: String(Date.now()),
-      studentId: student.id,
-      studentName: student.name,
-      instructorId: instructor.id,
-      instrument: instructor.instrument,
-      duration: form.duration,
-      level: form.level,
-      date: form.date,
-      time: form.time,
-      status: 'pending',
-    };
-
-    setRequests(prev => [...prev, newRequest]);
-
-    // Reset form
-    setForm({
-      studentId: '',
-      instructorId: '',
-      duration: '',
-      level: '',
-      date: '',
-      time: '',
-    });
-  };
-
-  const updateStatus = (id: string, newStatus: Request['status']) => {
-    setRequests(prev =>
-      prev.map(r => (r.id === id ? { ...r, status: newStatus } : r))
-    );
-  };
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {/* Add Request Form */}
-        <Card>
-          <CardHeader>
-            <CardTitle>New Lesson Request</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <Select onValueChange={(val) => handleSelectChange('studentId', val)} value={form.studentId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Student" />
-                </SelectTrigger>
-                <SelectContent>
-                  {students.map(student => (
-                    <SelectItem key={student.id} value={student.id}>
-                      {student.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select onValueChange={(val) => handleSelectChange('instructorId', val)} value={form.instructorId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Instructor" />
-                </SelectTrigger>
-                <SelectContent>
-                  {instructors.map(instructor => (
-                    <SelectItem key={instructor.id} value={instructor.id}>
-                      {instructor.name} ({instructor.instrument})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Input name="duration" placeholder="Duration (mins)" value={form.duration} onChange={handleChange} />
-              <Input name="level" placeholder="Level (e.g. Beginner)" value={form.level} onChange={handleChange} />
-              <Input type="date" name="date" value={form.date} onChange={handleChange} />
-              <Input type="time" name="time" value={form.time} onChange={handleChange} />
-            </div>
-            <Button onClick={submitRequest}>Submit Request</Button>
-          </CardContent>
-        </Card>
-
         {/* Requests List */}
         <Card>
           <CardHeader>
@@ -175,41 +71,83 @@ export default function LessonRequestsPage() {
                   <TableHead>Date</TableHead>
                   <TableHead>Time</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Instructor</TableHead>
+                  <TableHead>Room</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {requests.map(req => (
+                {pendingRequests.map((req) => (
                   <TableRow key={req.id}>
                     <TableCell>{req.studentName}</TableCell>
                     <TableCell>{req.instrument}</TableCell>
                     <TableCell>{req.duration} min</TableCell>
                     <TableCell>{req.level}</TableCell>
-                    <TableCell>{req.date}</TableCell>
-                    <TableCell>{req.time}</TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        {req.preferredDates.map((date, index) => (
+                          <div key={index}>
+                            {moment(date).format("MMM D, YYYY")}
+                          </div>
+                        ))}
+                      </div>
+                    </TableCell>
+
+                    <TableCell>
+                      <div className="space-y-1">
+                        {req.preferredTimes.map((time, index) => (
+                          <div key={index}>{time}</div>
+                        ))}
+                      </div>
+                    </TableCell>
                     <TableCell>
                       <Badge
                         variant={
-                          req.status === 'approved'
-                            ? 'success'
-                            : req.status === 'declined'
-                            ? 'destructive'
-                            : 'secondary'
+                          req.status === "approved"
+                            ? "default"
+                            : req.status === "declined"
+                            ? "destructive"
+                            : "secondary"
                         }
                       >
                         {req.status}
                       </Badge>
                     </TableCell>
+                    <TableCell>{req.instructorName}</TableCell>
+                    <TableCell>
+                      <Select
+                        onValueChange={async (value: string) => {
+                          await updateRoom(req.id, value);
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select duration" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {roomLookUp.map((room: string) => (
+                            <SelectItem key={room} value={room}>
+                              {room}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
                     <TableCell className="space-x-2 text-right">
                       <Button
                         variant="outline"
-                        onClick={() => updateStatus(req.id, 'approved')}
+                        onClick={async () =>
+                          await updateStatus(req.id, "approved")
+                        }
+                        disabled={!(req.status === "pending")}
                       >
                         Approve
                       </Button>
                       <Button
                         variant="destructive"
-                        onClick={() => updateStatus(req.id, 'declined')}
+                        onClick={async () =>
+                          await updateStatus(req.id, "declined")
+                        }
+                        disabled={!(req.status === "pending")}
                       >
                         Decline
                       </Button>

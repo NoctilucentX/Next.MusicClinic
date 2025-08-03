@@ -1,46 +1,49 @@
-'use client';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
 
-import React, { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import DashboardLayout from '@/components/layout/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { User, Mail, Phone, Music, Save, Edit } from 'lucide-react';
+import { useState } from "react";
+import DashboardLayout from "@/components/layout/DashboardLayout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { User, Mail, Phone, Music, Save, Edit } from "lucide-react";
+import useAuthStore from "@/store/useAuthStore";
 
 export default function StudentProfilePage() {
-  const { user } = useAuth();
+  const { user }: any = useAuthStore();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    name: user?.name || '',
-    email: user?.email || '',
-    phone: '+1 (555) 123-4567',
-    bio: 'Passionate music student looking to improve my skills and learn new techniques.',
-    instruments: ['Piano', 'Guitar'],
-    level: 'Intermediate',
-    goals: 'I want to learn classical piano pieces and improve my guitar fingerpicking technique.'
+    name: user?.name || "",
+    email: user?.email || "",
+    phone: "+1 (555) 123-4567",
+    bio: "Passionate music student looking to improve my skills and learn new techniques.",
+    instruments: ["Piano", "Guitar"],
+    level: "Intermediate",
+    goals:
+      "I want to learn classical piano pieces and improve my guitar fingerpicking technique.",
   });
 
   const handleSave = () => {
     // In a real app, this would update the user profile in Firebase
     setIsEditing(false);
-    console.log('Profile updated:', formData);
+    console.log("Profile updated:", formData);
   };
 
   const handleCancel = () => {
     setIsEditing(false);
     // Reset form data to original values
     setFormData({
-      name: user?.name || '',
-      email: user?.email || '',
-      phone: '+1 (555) 123-4567',
-      bio: 'Passionate music student looking to improve my skills and learn new techniques.',
-      instruments: ['Piano', 'Guitar'],
-      level: 'Intermediate',
-      goals: 'I want to learn classical piano pieces and improve my guitar fingerpicking technique.'
+      name: user?.name || "",
+      email: user?.email || "",
+      phone: "+1 (555) 123-4567",
+      bio: "Passionate music student looking to improve my skills and learn new techniques.",
+      instruments: ["Piano", "Guitar"],
+      level: "Intermediate",
+      goals:
+        "I want to learn classical piano pieces and improve my guitar fingerpicking technique.",
     });
   };
 
@@ -50,7 +53,9 @@ export default function StudentProfilePage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">My Profile</h1>
-            <p className="text-gray-600">Manage your personal information and preferences</p>
+            <p className="text-gray-600">
+              Manage your personal information and preferences
+            </p>
           </div>
           {!isEditing ? (
             <Button onClick={() => setIsEditing(true)} className="mt-4 sm:mt-0">
@@ -86,7 +91,9 @@ export default function StudentProfilePage() {
                   <Input
                     id="name"
                     value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
                     disabled={!isEditing}
                   />
                 </div>
@@ -96,7 +103,9 @@ export default function StudentProfilePage() {
                     id="email"
                     type="email"
                     value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, email: e.target.value })
+                    }
                     disabled={!isEditing}
                   />
                 </div>
@@ -107,7 +116,9 @@ export default function StudentProfilePage() {
                 <Input
                   id="phone"
                   value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, phone: e.target.value })
+                  }
                   disabled={!isEditing}
                 />
               </div>
@@ -117,7 +128,9 @@ export default function StudentProfilePage() {
                 <Textarea
                   id="bio"
                   value={formData.bio}
-                  onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, bio: e.target.value })
+                  }
                   disabled={!isEditing}
                   rows={3}
                   placeholder="Tell us about yourself..."
@@ -129,7 +142,9 @@ export default function StudentProfilePage() {
                 <Textarea
                   id="goals"
                   value={formData.goals}
-                  onChange={(e) => setFormData({ ...formData, goals: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, goals: e.target.value })
+                  }
                   disabled={!isEditing}
                   rows={3}
                   placeholder="What are your musical goals?"
@@ -173,7 +188,9 @@ export default function StudentProfilePage() {
               </div>
 
               <div className="pt-4 border-t">
-                <h4 className="text-sm font-medium text-gray-900 mb-3">Quick Stats</h4>
+                <h4 className="text-sm font-medium text-gray-900 mb-3">
+                  Quick Stats
+                </h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Total Lessons:</span>
@@ -218,7 +235,9 @@ export default function StudentProfilePage() {
                 <User size={20} className="text-gray-500" />
                 <div>
                   <p className="text-sm font-medium">User Type</p>
-                  <p className="text-sm text-gray-600 capitalize">{user?.userType}</p>
+                  <p className="text-sm text-gray-600 capitalize">
+                    {user?.userType}
+                  </p>
                 </div>
               </div>
             </div>

@@ -1,64 +1,27 @@
-// app/admin/schedule/page.tsx
-'use client';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
 
-import { useEffect, useState } from 'react';
-import DashboardLayout from '@/components/layout/DashboardLayout';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Calendar } from '@/components/ui/calendar'; // if you have one or use a placeholder
-import { format } from 'date-fns';
-
-type Lesson = {
-  id: string;
-  date: string;
-  time: string;
-  studentName: string;
-  instructorName: string;
-  instrument: string;
-  status: 'completed' | 'upcoming';
-};
+import { useEffect, useState } from "react";
+import DashboardLayout from "@/components/layout/DashboardLayout";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Calendar } from "@/components/ui/calendar";
+import useAdminDashboard from "@/store/useAdminDashboard";
+import moment from "moment";
 
 export default function SchedulePage() {
-  const [lessons, setLessons] = useState<Lesson[]>([]);
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [lessons, setLessons] = useState<any[]>([]);
 
-  // Simulated fetch
   useEffect(() => {
-    const mockLessons: Lesson[] = [
-      {
-        id: 'a1',
-        date: '2025-07-06',
-        time: '10:00',
-        studentName: 'Ella Mendoza',
-        instructorName: 'Coach Ria',
-        instrument: 'Piano',
-        status: 'completed'
-      },
-      {
-        id: 'a2',
-        date: '2025-07-12',
-        time: '14:00',
-        studentName: 'Leo Santos',
-        instructorName: 'Coach Mike',
-        instrument: 'Guitar',
-        status: 'upcoming'
-      },
-      {
-        id: 'a3',
-        date: '2025-07-15',
-        time: '16:30',
-        studentName: 'Bianca Yu',
-        instructorName: 'Coach Ria',
-        instrument: 'Violin',
-        status: 'upcoming'
-      }
-    ];
-    setLessons(mockLessons);
-  }, []);
-
-  const lessonsOnSelectedDate = lessons.filter(
-    lesson => format(new Date(lesson.date), 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd')
-  );
+    const loadLessons = async () => {
+      const data = await useAdminDashboard
+        .getState()
+        .fetchLessonsByDate(selectedDate);
+      setLessons(data);
+    };
+    loadLessons();
+  }, [selectedDate]);
 
   return (
     <DashboardLayout>
@@ -71,30 +34,55 @@ export default function SchedulePage() {
             <Calendar
               mode="single"
               selected={selectedDate}
-              onSelect={date => setSelectedDate(date ?? new Date())}
+              onSelect={(date) => setSelectedDate(date ?? new Date())}
               className="rounded-md border"
-              month={new Date('2025-07-01')} // You could allow dynamic month switching later
+              month={new Date()}
             />
+
             <div className="mt-6 space-y-4">
-              {lessonsOnSelectedDate.length > 0 ? (
-                lessonsOnSelectedDate.map(lesson => (
-                  <Card key={lesson.id} className="border p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-lg font-medium">{lesson.instrument} Lesson</p>
-                        <p className="text-sm text-muted-foreground">
-                          {lesson.studentName} with {lesson.instructorName}
-                        </p>
-                        <p className="text-sm text-muted-foreground">{lesson.time}</p>
+              {lessons.length > 0 ? (
+                lessons.map((lesson) => {
+                  const formattedDate =
+                    lesson.preferredDates?.length &&
+                    lesson.preferredTimes?.length
+                      ? moment(
+                          `${lesson.preferredDates[0]} ${lesson.preferredTimes[0]}`,
+                          "YYYY-MM-DDTHH:mm:ss.SSSZ h:mm A"
+                        ).format("dddd, MMM D - h:mm A")
+                      : "Unknown time";
+
+                  return (
+                    <Card key={lesson.id} className="border p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-lg font-medium">
+                            {lesson.instrument || "Instrument"} Lesson
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {lesson.studentName || "Student"} with{" "}
+                            {lesson.instructorName || "Instructor"}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {formattedDate}
+                          </p>
+                        </div>
+                        <Badge
+                          variant={
+                            lesson.status === "approved"
+                              ? "default"
+                              : "secondary"
+                          }
+                        >
+                          {lesson.status}
+                        </Badge>
                       </div>
-                      <Badge variant={lesson.status === 'completed' ? 'default' : 'secondary'}>
-                        {lesson.status}
-                      </Badge>
-                    </div>
-                  </Card>
-                ))
+                    </Card>
+                  );
+                })
               ) : (
-                <p className="text-muted-foreground">No lessons scheduled for this day.</p>
+                <p className="text-muted-foreground">
+                  No lessons scheduled for this day.
+                </p>
               )}
             </div>
           </CardContent>

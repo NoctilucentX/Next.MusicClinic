@@ -1,17 +1,19 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useEffect } from "react";
+import useAuthStore from "@/store/useAuthStore";
 
 export default function ClientBody({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // Remove any extension-added classes during hydration
-  useEffect(() => {
-    // This runs only on the client after hydration
-    document.body.className = "antialiased";
-  }, []);
+  const { initializeAuth }: any = useAuthStore();
 
-  return <div className="antialiased">{children}</div>;
+  useEffect(() => {
+    initializeAuth();
+  }, [initializeAuth]);
+
+  return <>{children}</>;
 }

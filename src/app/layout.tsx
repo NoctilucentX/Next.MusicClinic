@@ -3,7 +3,6 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import ClientBody from "./ClientBody";
 import Script from "next/script";
-import { AuthProvider } from "@/contexts/AuthContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,7 +16,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Sernan's Music Clinic - Studio Management Platform",
-  description: "Modern studio management platform for music lessons and scheduling",
+  description:
+    "Modern studio management platform for music lessons and scheduling",
 };
 
 export default function RootLayout({
@@ -34,9 +34,7 @@ export default function RootLayout({
         />
       </head>
       <body suppressHydrationWarning className="antialiased">
-        <AuthProvider>
-          <ClientBody>{children}</ClientBody>
-        </AuthProvider>
+        <ClientBody>{children}</ClientBody>
       </body>
     </html>
   );

@@ -1,72 +1,50 @@
-'use client';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
 
-import { useEffect, useState } from 'react';
-import DashboardLayout from '@/components/layout/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import moment from "moment";
+import DashboardLayout from "@/components/layout/DashboardLayout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
+} from "@/components/ui/table";
+import useStudentStore from "@/store/useStudentStore";
+import useAuthStore from "@/store/useAuthStore";
+
+type StudentForm = {
+  displayName: string;
+  email: string;
+  dateEnrolled: string;
+};
 
 export default function StudentsPage() {
-  const [students, setStudents] = useState([]);
+  const { user }: any = useAuthStore();
+  const { register, handleSubmit, reset } = useForm<StudentForm>();
+  const { createStudent, fetchAllStudents, students } = useStudentStore();
 
-  const [newStudent, setNewStudent] = useState({
-    name: '',
-    email: '',
-    instrument: '',
-    instructor: '',
-    dateEnrolled: ''
-  });
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setNewStudent({ ...newStudent, [e.target.name]: e.target.value });
-  };
-
-  // ✅ Fetch students from API on mount
+  // Fetch students on mount
   useEffect(() => {
-    const fetchStudents = async () => {
-      try {
-        const res = await fetch('/api/students');
-        const data = await res.json();
-        if (data.success) {
-          setStudents(data.students);
-        } else {
-          console.error('Failed to fetch students:', data.error);
-        }
-      } catch (err) {
-        console.error('Error fetching students:', err);
-      }
-    };
+    fetchAllStudents();
+  }, [fetchAllStudents]);
 
-    fetchStudents();
-  }, []);
-
-  // ✅ Add student to DB
-  const addStudent = async () => {
-    try {
-      const res = await fetch('/api/students', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newStudent),
-      });
-
-      const data = await res.json();
-
-      if (data.success) {
-        // Add to local state or re-fetch
-        setStudents((prev) => [...prev, newStudent]);
-        setNewStudent({
-          name: '',
-          email: '',
-          instrument: '',
-          instructor: '',
-          dateEnrolled: ''
-        });
-      } else {
-        alert('Failed to add student: ' + data.error);
-      }
-    } catch (error: any) {
-      alert('Error adding student: ' + error.message);
+  const onSubmit = async (data: StudentForm) => {
+    if (data) {
+      const studentInfo = {
+        ...data,
+        userType: "student",
+      };
+      console.log("TESt 123: ", user);
+      await createStudent(studentInfo, user);
+      await fetchAllStudents();
+      reset();
     }
   };
 
@@ -78,20 +56,22 @@ export default function StudentsPage() {
             <CardTitle>Add Student</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <Input name="name" placeholder="Name" value={newStudent.name} onChange={handleChange} />
-              <Input name="email" placeholder="Email" value={newStudent.email} onChange={handleChange} />
-              <Input name="instrument" placeholder="Instrument" value={newStudent.instrument} onChange={handleChange} />
-              <Input name="instructor" placeholder="Instructor" value={newStudent.instructor} onChange={handleChange} />
-              <Input
-                type="date"
-                name="dateEnrolled"
-                placeholder="Date Enrolled"
-                value={newStudent.dateEnrolled}
-                onChange={handleChange}
-              />
-            </div>
-            <Button onClick={addStudent}>Add Student</Button>
+            <form onSubmit={handleSubmit(onSubmit)}>
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  placeholder="Name"
+                  {...register("displayName", { required: true })}
+                />
+                <Input
+                  type="email"
+                  placeholder="Email"
+                  {...register("email", { required: true })}
+                />
+              </div>
+              <Button type="submit" className="mt-4">
+                Add Student
+              </Button>
+            </form>
           </CardContent>
         </Card>
 
@@ -111,13 +91,21 @@ export default function StudentsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {students.map((student, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{student.name}</TableCell>
+                {students.map((student: any, index: number) => (
+                  <TableRow key={student.id || index}>
+                    <TableCell>{student.displayName}</TableCell>
                     <TableCell>{student.email}</TableCell>
-                    <TableCell>{student.instrument}</TableCell>
-                    <TableCell>{student.instructor}</TableCell>
-                    <TableCell>{student.dateEnrolled}</TableCell>
+                    <TableCell>{student.instrument || "-"}</TableCell>
+                    <TableCell>{student.instructor || "-"}</TableCell>
+                    <TableCell>
+                      {student.dateEnrolled
+                        ? moment(
+                            typeof student.dateEnrolled.toDate === "function"
+                              ? student.dateEnrolled.toDate()
+                              : student.dateEnrolled
+                          ).format("MMMM D, YYYY")
+                        : "N/A"}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

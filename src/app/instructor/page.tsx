@@ -1,62 +1,74 @@
-'use client';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
 
-import React from 'react';
-import DashboardLayout from '@/components/layout/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Calendar, Users, BookOpen, Clock } from 'lucide-react';
+import { useEffect } from "react";
+import DashboardLayout from "@/components/layout/DashboardLayout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Calendar, Users, BookOpen, Clock } from "lucide-react";
+import useInstructorDashboard from "@/store/useInstructorDashboard";
+import useAuthStore from "@/store/useAuthStore";
+import moment from "moment";
+import { daysOfWeekLookUp } from "@/lib/helper";
 
 export default function InstructorDashboard() {
-  const todayLessons = [
-    {
-      id: 1,
-      student: 'John Doe',
-      instrument: 'Piano',
-      time: '2:00 PM',
-      duration: '60 min',
-      level: 'Intermediate'
-    },
-    {
-      id: 2,
-      student: 'Sarah Smith',
-      instrument: 'Guitar',
-      time: '4:00 PM',
-      duration: '45 min',
-      level: 'Beginner'
-    }
-  ];
+  const { user }: any = useAuthStore();
+  const {
+    getTodaysLessons,
+    getTotalStudents,
+    getThisWeekLessonsCount,
+    getTotalTeachingHoursThisWeek,
+    getWeeklyOverview,
+    getApprovedLessonRequests,
+  } = useInstructorDashboard();
+
+  const todaysLessons = getTodaysLessons();
+  const totalStudents = getTotalStudents();
+  const lessonsThisWeek = getThisWeekLessonsCount();
+  const hoursThisWeek = getTotalTeachingHoursThisWeek();
+  const weeklyOverview = getWeeklyOverview();
 
   const stats = [
     {
-      title: 'Today\'s Lessons',
-      value: todayLessons.length.toString(),
+      title: "Lessons Scheduled Today",
+      value: todaysLessons.length.toString(),
       icon: BookOpen,
-      change: '2 remaining'
+      change: "scheduled for today",
     },
     {
-      title: 'Total Students',
-      value: '18',
+      title: "Total Active Students",
+      value: totalStudents,
       icon: Users,
-      change: '+2 this month'
+      change: "currently enrolled",
     },
     {
-      title: 'This Week',
-      value: '12',
+      title: "Lessons Scheduled",
+      value: lessonsThisWeek,
       icon: Calendar,
-      change: 'lessons scheduled'
+      change: "lessons this week",
     },
     {
-      title: 'Teaching Hours',
-      value: '28',
+      title: "Total Teaching Hours",
+      value: hoursThisWeek,
       icon: Clock,
-      change: 'this week'
-    }
+      change: "hours taught this week",
+    },
   ];
+
+  useEffect(() => {
+    if (user) {
+      getApprovedLessonRequests(user?.uid);
+    }
+  }, [user, getApprovedLessonRequests]);
+
+  console.log("weeklyOverview: ", weeklyOverview);
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Instructor Dashboard</h1>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Instructor Dashboard
+          </h1>
           <p className="text-gray-600">Manage your lessons and students</p>
         </div>
 
@@ -86,27 +98,46 @@ export default function InstructorDashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {todayLessons.length === 0 ? (
+              {todaysLessons.length === 0 ? (
                 <div className="text-center py-8">
                   <BookOpen className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                  <p className="text-gray-500">No lessons scheduled for today</p>
+                  <p className="text-gray-500">
+                    No lessons scheduled for today
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {todayLessons.map((lesson) => (
-                    <div key={lesson.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  {todaysLessons.map((lesson: any) => (
+                    <div
+                      key={lesson.id}
+                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                    >
                       <div className="flex items-center space-x-3">
                         <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
                           <Users size={16} className="text-blue-600" />
                         </div>
                         <div>
-                          <p className="font-medium">{lesson.student}</p>
-                          <p className="text-sm text-gray-600">{lesson.instrument} • {lesson.level}</p>
+                          <p className="font-medium">{lesson.studentName}</p>
+                          <p className="text-sm text-gray-600">
+                            {lesson.instrument} • {lesson.level}
+                          </p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm font-medium">{lesson.time}</p>
-                        <p className="text-xs text-gray-500">{lesson.duration}</p>
+                        <p className="text-sm font-medium">
+                          {lesson.preferredTimes?.length
+                            ? lesson.preferredTimes
+                                .slice()
+                                .sort(
+                                  (a: any, b: any) =>
+                                    moment(a, "h:mm A").toDate().getTime() -
+                                    moment(b, "h:mm A").toDate().getTime()
+                                )[0]
+                            : "-"}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {lesson.duration} min
+                        </p>
                       </div>
                     </div>
                   ))}
@@ -124,26 +155,19 @@ export default function InstructorDashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="flex justify-between items-center p-2 border-b">
-                  <span className="text-sm font-medium">Monday</span>
-                  <span className="text-sm text-gray-600">4 lessons</span>
-                </div>
-                <div className="flex justify-between items-center p-2 border-b">
-                  <span className="text-sm font-medium">Tuesday</span>
-                  <span className="text-sm text-gray-600">3 lessons</span>
-                </div>
-                <div className="flex justify-between items-center p-2 border-b">
-                  <span className="text-sm font-medium">Wednesday</span>
-                  <span className="text-sm text-gray-600">2 lessons</span>
-                </div>
-                <div className="flex justify-between items-center p-2 border-b">
-                  <span className="text-sm font-medium">Thursday</span>
-                  <span className="text-sm text-gray-600">3 lessons</span>
-                </div>
-                <div className="flex justify-between items-center p-2">
-                  <span className="text-sm font-medium">Friday</span>
-                  <span className="text-sm text-gray-600">0 lessons</span>
-                </div>
+                {daysOfWeekLookUp.map((day, idx) => (
+                  <div
+                    key={idx}
+                    className={`flex justify-between items-center p-2 ${
+                      idx < 6 ? "border-b" : ""
+                    }`}
+                  >
+                    <span className="text-sm font-medium">{day}</span>
+                    <span className="text-sm text-gray-600">
+                      {weeklyOverview?.[day] || 0} lessons
+                    </span>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>
@@ -159,7 +183,9 @@ export default function InstructorDashboard() {
                 <Calendar size={20} className="text-blue-600" />
                 <div>
                   <p className="font-medium">View Schedule</p>
-                  <p className="text-xs text-gray-500">Check upcoming lessons</p>
+                  <p className="text-xs text-gray-500">
+                    Check upcoming lessons
+                  </p>
                 </div>
               </div>
             </button>
